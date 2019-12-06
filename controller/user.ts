@@ -106,6 +106,47 @@ export class User {
       res.send("oAuth");
     }
   }
+  // google oAuth 
+  google(req: Request, res: Response) {
+    let array: string[] = Object.keys(req.body);
+    if (
+      array.indexOf("name") === -1 ||
+      array.indexOf("photoUrl") === -1 ||
+      array.indexOf("oAuth") === -1 ||
+      array.indexOf("email") === -1
+    ) {
+      return res.status(400).send({
+        error: {
+          status: 400,
+          message:
+            "body를 다음과 같이 수정해주세요,{email, oAuth, name, photoUrl }"
+        }
+      });
+    }
+    let name: string = req.body.name;
+    let email: string = req.body.email;
+    let oAuth: number = +req.body.oAuth;
+    let img_url: string = req.body.photoUrl;
+    if (oAuth === 1) {
+      Users.findOrCreate<Users>({ where: { email }, defaults: { name, email, oAuth, img_url } })
+        .then(arr => {
+          let user_id: number = arr[0].id;
+          res.status(201).send({
+            message: "로그인 완료",
+            token: tokenSign({ user_id, email })
+          })
+        })
+        .catch((err: Error) => {
+          res.status(500).send({
+            error: {
+              status: 500,
+              message: "db쪽 문제"
+            }
+          })
+        })
+    }
+  }
+  //로그인 
   signin(req: Request, res: Response) {
 
     let array: string[] = Object.keys(req.body);
